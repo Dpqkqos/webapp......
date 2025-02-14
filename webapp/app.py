@@ -13,23 +13,8 @@ def get_db_connection():
 # Инициализация базы данных
 def init_db():
     conn = get_db_connection()
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT UNIQUE,
-            role TEXT
-        )
-    ''')
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS states (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT,
-            date TEXT,
-            state TEXT,
-            recommendation TEXT,
-            FOREIGN KEY (user_id) REFERENCES users (user_id)
-        )
-    ''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT UNIQUE, role TEXT)''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS states (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, date TEXT, state TEXT, recommendation TEXT, FOREIGN KEY (user_id) REFERENCES users (user_id))''')
     conn.commit()
     conn.close()
 
@@ -72,6 +57,3 @@ def update_recommendation():
     conn.commit()
     conn.close()
     return jsonify({'status': 'success'})
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
