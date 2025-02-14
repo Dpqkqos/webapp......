@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Клиенты</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary-color: #0088cc;
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --input-bg: #f1f1f1;
+            --input-text: #333;
+            --card-bg: #f9f9f9;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Тёмная тема */
+        [data-theme="dark"] {
+            --bg-color: #1e1e1e;
+            --text-color: #ffffff;
+            --input-bg: #2a2a2a;
+            --input-text: #fff;
+            --card-bg: #252525;
+            --shadow: rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .client-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px var(--shadow);
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .client-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .client-icon {
+            font-size: 20px;
+            color: var(--primary-color);
+        }
+
+        .client-details {
+            flex-grow: 1;
+        }
+
+        .client-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .client-state {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .recommendation-box {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--input-bg);
+            background: var(--input-bg);
+            color: var(--input-text);
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: var(--primary-color);
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        button:hover {
+            background: #0077b3;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Список клиентов</h1>
+
+    <div id="clients-list">
+        {% for state in states %}
+        <div class="client-card">
+            <div class="client-info">
+                <i class="fa fa-user client-icon"></i>
+                <div class="client-details">
+                    <div class="client-name">Клиент {{ state['user_id'] }}</div>
+                    <div class="client-state">Состояние: {{ state['state'] }}</div>
+                    <div class="client-state">Дата: {{ state['date'] }}</div>
+                </div>
+            </div>
+            <div class="recommendation-box">
+                <input type="text" id="recommendation-{{ state['id'] }}" placeholder="Введите рекомендацию">
+                <button onclick="sendRecommendation('{{ state.user_id }}', '{{ state.id }}')">
+                    <i class="fa fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function sendRecommendation(userId, stateId) {
+            const input = document.getElementById(`recommendation-${stateId}`);
+            const recommendation = input.value.trim();
+            if (!recommendation) return alert("Введите рекомендацию!");
+
+            fetch('/update_recommendation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `user_id=${userId}&recommendation=${encodeURIComponent(recommendation)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Рекомендация отправлена');
+                    input.value = "";
+                } else {
+                    alert('Ошибка при отправке рекомендации');
+                }
+            });
+        }
+
+        // Проверяем тему Telegram WebApp
+        function updateTheme() {
+            const theme = Telegram.WebApp.colorScheme;
+            document.body.setAttribute("data-theme", theme);
+        }
+
+        Telegram.WebApp.onEvent("themeChanged", updateTheme);
+        updateTheme();
+    </script>
+
+</body>
+</html>
